@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>Rey Sylvain · AR Card</title>
+
+    <script
+      type="module"
+      src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"
+    ></script>
+    <script
+      src="https://unpkg.com/react@18/umd/react.production.min.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+      crossorigin
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --c: #00d4ff;
+        --c2: #0055ff;
+        --c3: #00ffaa;
+        --bg: #06060f;
+        --panel: rgba(4, 10, 24, 0.92);
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--c);
+        font-family: "Share Tech Mono", monospace;
+        overflow: hidden;
+      }
+
+      #root {
+        height: 100%;
+      }
+
+      /* ── Scanlines ────────────────────── */
+      .scanlines {
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 3px,
+          rgba(0, 212, 255, 0.012) 3px,
+          rgba(0, 212, 255, 0.012) 4px
+        );
+        pointer-events: none;
+        z-index: 999;
+      }
+
+      /* ── Grid bg ──────────────────────── */
+      .bg-grid {
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(0, 80, 180, 0.07) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 80, 180, 0.07) 1px, transparent 1px);
+        background-size: 40px 40px;
+        animation: gridScroll 25s linear infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      @keyframes gridScroll {
+        from {
+          background-position: 0 0;
+        }
+        to {
+          background-position: 0 40px;
+        }
+      }
+
+      /* ── Layout ───────────────────────── */
+      .app {
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Stage ────────────────────────── */
+      .stage {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      /* ── Center glow ──────────────────── */
+      .center-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: min(75vw, 420px);
+        height: min(75vw, 420px);
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(0, 70, 255, 0.38) 0%,
+          rgba(0, 200, 255, 0.14) 45%,
+          transparent 70%
+        );
+        animation: glowPulse 3.2s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      @keyframes glowPulse {
+        0%,
+        100% {
+          opacity: 0.65;
+          transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.22);
+        }
+      }
+
+      /* ── Orbit rings ──────────────────── */
+      .orbits {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 2;
+        transform-style: preserve-3d;
+      }
+
+      .ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border-radius: 50%;
+        border: 1px solid;
+        transform-style: preserve-3d;
+      }
+
+      /* -- ring 1: bright cyan, medium, steady -- */
+      .r1 {
+        width: 280px;
+        height: 280px;
+        margin: -140px 0 0 -140px;
+        border-color: rgba(0, 210, 255, 0.55);
+        box-shadow:
+          0 0 10px rgba(0, 210, 255, 0.18),
+          inset 0 0 10px rgba(0, 210, 255, 0.06);
+        animation: spin1 8s linear infinite;
+      }
+      .r1::before {
+        content: "";
+        position: absolute;
+        width: 9px;
+        height: 9px;
+        top: -4.5px;
+        left: calc(50% - 4.5px);
+        border-radius: 50%;
+        background: var(--c);
+        box-shadow:
+          0 0 14px var(--c),
+          0 0 28px var(--c);
+      }
+
+      /* -- ring 2: deep blue, smaller, fast reverse -- */
+      .r2 {
+        width: 200px;
+        height: 200px;
+        margin: -100px 0 0 -100px;
+        border-color: rgba(60, 100, 255, 0.6);
+        box-shadow: 0 0 8px rgba(60, 100, 255, 0.2);
+        animation: spin2 5.5s linear infinite reverse;
+      }
+      .r2::before {
+        content: "";
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        top: -3px;
+        left: calc(50% - 3px);
+        border-radius: 50%;
+        background: #7799ff;
+        box-shadow:
+          0 0 10px #7799ff,
+          0 0 22px #7799ff;
+      }
+
+      /* -- ring 3: green-cyan, large, very slow -- */
+      .r3 {
+        width: 360px;
+        height: 360px;
+        margin: -180px 0 0 -180px;
+        border-color: rgba(0, 255, 170, 0.2);
+        animation: spin3 14s linear infinite;
+      }
+      .r3::before {
+        content: "";
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        top: -2.5px;
+        left: calc(50% - 2.5px);
+        border-radius: 50%;
+        background: var(--c3);
+        box-shadow:
+          0 0 8px var(--c3),
+          0 0 18px var(--c3);
+      }
+
+      @keyframes spin1 {
+        from {
+          transform: rotateX(70deg) rotateZ(0deg);
+        }
+        to {
+          transform: rotateX(70deg) rotateZ(360deg);
+        }
+      }
+      @keyframes spin2 {
+        from {
+          transform: rotateX(56deg) rotateZ(0deg);
+        }
+        to {
+          transform: rotateX(56deg) rotateZ(360deg);
+        }
+      }
+      @keyframes spin3 {
+        from {
+          transform: rotateX(80deg) rotateZ(0deg);
+        }
+        to {
+          transform: rotateX(80deg) rotateZ(360deg);
+        }
+      }
+
+      /* ── Scan sweep ───────────────────── */
+      .scan-sweep {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 212, 255, 0.7),
+          transparent
+        );
+        box-shadow:
+          0 0 14px rgba(0, 212, 255, 0.45),
+          0 0 28px rgba(0, 212, 255, 0.2);
+        animation: sweep 5s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      @keyframes sweep {
+        0% {
+          top: -4%;
+          opacity: 0;
+        }
+        4% {
+          opacity: 1;
+        }
+        96% {
+          opacity: 0.5;
+        }
+        100% {
+          top: 104%;
+          opacity: 0;
+        }
+      }
+
+      /* ── Particles ────────────────────── */
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        animation: floatUp linear infinite;
+        pointer-events: none;
+        z-index: 2;
+        opacity: 0;
+      }
+
+      @keyframes floatUp {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 0;
+        }
+        12% {
+          opacity: 1;
+        }
+        88% {
+          opacity: 0.45;
+        }
+        100% {
+          transform: translateY(-90px) scale(0);
+          opacity: 0;
+        }
+      }
+
+      /* ── model-viewer ─────────────────── */
+      .mv-wrap {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+      }
+
+      model-viewer {
+        width: 100%;
+        height: 100%;
+        --poster-color: transparent;
+        --progress-bar-color: #00d4ff;
+        --progress-mask: transparent;
+      }
+
+      model-viewer::part(default-ar-button) {
+        display: none; /* we use our own AR button */
+      }
+
+      /* ── Frame corners on stage ───────── */
+      .frame-corner {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-color: rgba(0, 212, 255, 0.5);
+        border-style: solid;
+        pointer-events: none;
+        z-index: 6;
+      }
+      .fc-tl {
+        top: 14px;
+        left: 14px;
+        border-width: 2px 0 0 2px;
+      }
+      .fc-tr {
+        top: 14px;
+        right: 14px;
+        border-width: 2px 2px 0 0;
+      }
+      .fc-bl {
+        bottom: 4px;
+        left: 14px;
+        border-width: 0 0 2px 2px;
+      }
+      .fc-br {
+        bottom: 4px;
+        right: 14px;
+        border-width: 0 2px 2px 0;
+      }
+
+      /* ── Data tags ────────────────────── */
+      .data-tag {
+        position: absolute;
+        font-size: 0.55rem;
+        letter-spacing: 0.14em;
+        color: rgba(0, 212, 255, 0.3);
+        pointer-events: none;
+        z-index: 6;
+        text-transform: uppercase;
+      }
+
+      /* ── Info panel wrap ──────────────── */
+      .panel-wrap {
+        position: relative;
+        z-index: 10;
+        padding: 0 16px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      /* ── Info card ────────────────────── */
+      .info-card {
+        width: 100%;
+        max-width: 440px;
+        background: var(--panel);
+        border: 1px solid rgba(0, 212, 255, 0.22);
+        backdrop-filter: blur(18px);
+        padding: 16px 20px 14px;
+        position: relative;
+        clip-path: polygon(
+          0 10px,
+          10px 0,
+          calc(100% - 10px) 0,
+          100% 10px,
+          100% calc(100% - 10px),
+          calc(100% - 10px) 100%,
+          10px 100%,
+          0 calc(100% - 10px)
+        );
+      }
+
+      .info-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 140, 255, 0.07) 0%,
+          transparent 55%
+        );
+        pointer-events: none;
+      }
+
+      .ic-corner {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-color: var(--c);
+        border-style: solid;
+      }
+      .ic-tl {
+        top: -1px;
+        left: -1px;
+        border-width: 2px 0 0 2px;
+      }
+      .ic-tr {
+        top: -1px;
+        right: -1px;
+        border-width: 2px 2px 0 0;
+      }
+      .ic-bl {
+        bottom: -1px;
+        left: -1px;
+        border-width: 0 0 2px 2px;
+      }
+      .ic-br {
+        bottom: -1px;
+        right: -1px;
+        border-width: 0 2px 2px 0;
+      }
+
+      .card-name {
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(1.05rem, 5vw, 1.45rem);
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: 0.1em;
+        text-shadow:
+          0 0 18px var(--c),
+          0 0 36px rgba(0, 212, 255, 0.3);
+      }
+
+      .card-divider {
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          var(--c),
+          rgba(0, 212, 255, 0.3),
+          transparent
+        );
+        margin: 10px 0 8px;
+        transform-origin: left;
+        animation: divExpand 0.9s ease-out forwards;
+      }
+
+      @keyframes divExpand {
+        from {
+          transform: scaleX(0);
+        }
+        to {
+          transform: scaleX(1);
+        }
+      }
+
+      .card-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 3px 0;
+      }
+
+      .card-lbl {
+        font-size: 0.58rem;
+        letter-spacing: 0.18em;
+        color: rgba(0, 212, 255, 0.38);
+        text-transform: uppercase;
+        min-width: 34px;
+        flex-shrink: 0;
+      }
+
+      .card-val {
+        font-size: clamp(0.68rem, 2.6vw, 0.82rem);
+        color: rgba(0, 212, 255, 0.88);
+      }
+
+      .card-val a {
+        color: inherit;
+        text-decoration: none;
+        transition:
+          color 0.2s,
+          text-shadow 0.2s;
+      }
+
+      .card-val a:hover {
+        color: #fff;
+        text-shadow: 0 0 8px var(--c);
+      }
+
+      /* ── AR Button ────────────────────── */
+      .ar-button {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        color: var(--c);
+        background: linear-gradient(
+          135deg,
+          rgba(0, 212, 255, 0.1),
+          rgba(0, 80, 255, 0.1)
+        );
+        border: 1px solid rgba(0, 212, 255, 0.42);
+        padding: 12px 26px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        clip-path: polygon(
+          0 5px,
+          5px 0,
+          calc(100% - 5px) 0,
+          100% 5px,
+          100% calc(100% - 5px),
+          calc(100% - 5px) 100%,
+          5px 100%,
+          0 calc(100% - 5px)
+        );
+        animation: arGlow 2.5s ease-in-out infinite;
+        transition: background 0.3s;
+      }
+
+      .ar-button::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 212, 255, 0.12),
+          transparent
+        );
+        transform: translateX(-100%);
+        animation: shimmer 2.8s linear infinite;
+      }
+
+      @keyframes shimmer {
+        to {
+          transform: translateX(100%);
+        }
+      }
+
+      @keyframes arGlow {
+        0%,
+        100% {
+          box-shadow: 0 0 8px rgba(0, 212, 255, 0.18);
+        }
+        50% {
+          box-shadow:
+            0 0 22px rgba(0, 212, 255, 0.5),
+            0 0 42px rgba(0, 212, 255, 0.12);
+        }
+      }
+
+      .ar-button:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 212, 255, 0.2),
+          rgba(0, 80, 255, 0.2)
+        );
+      }
+
+      .ar-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #00ff88;
+        flex-shrink: 0;
+        animation: blink 1.4s ease-in-out infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+          box-shadow: 0 0 6px #00ff88;
+        }
+        50% {
+          opacity: 0.15;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useEffect, useRef } = React;
+
+      // Particle data — generated once, stable across renders
+      const PARTICLES = Array.from({ length: 22 }, (_, i) => ({
+        id: i,
+        size: 1 + Math.random() * 3,
+        left: 4 + Math.random() * 92,
+        bottom: 4 + Math.random() * 65,
+        delay: Math.random() * 8,
+        dur: 3 + Math.random() * 4,
+        green: i % 4 === 0,
+      }));
+
+      function App() {
+        const mvWrapRef = useRef(null);
+        const mvRef = useRef(null);
+
+        useEffect(() => {
+          if (!mvWrapRef.current) return;
+
+          const mv = document.createElement("model-viewer");
+          mv.setAttribute("src", "./asset/BONHOMME BLEU.glb");
+          mv.setAttribute("alt", "bonhomme bleu 3D");
+          mv.setAttribute("ar", "");
+          mv.setAttribute("ar-modes", "webxr scene-viewer quick-look");
+          mv.setAttribute("camera-controls", "");
+          mv.setAttribute("auto-rotate", "");
+          mv.setAttribute("ar-button-label", "Voir en réalité augmentée");
+          mv.style.cssText =
+            "width:100%;height:100%;--poster-color:transparent;--progress-bar-color:#00d4ff;";
+
+          mvWrapRef.current.appendChild(mv);
+          mvRef.current = mv;
+
+          return () => {
+            try {
+              mvWrapRef.current?.removeChild(mv);
+            } catch (_) {}
+          };
+        }, []);
+
+        const handleAR = () => {
+          if (mvRef.current?.activateAR) {
+            mvRef.current.activateAR();
+          }
+        };
+
+        return (
+          <div className="app">
+            <div className="bg-grid" />
+            <div className="scanlines" />
+
+            {/* ── Stage ── */}
+            <div className="stage">
+              {/* Glow behind model */}
+              <div className="center-glow" />
+
+              {/* 3D orbit rings */}
+              <div className="orbits">
+                <div className="ring r1" />
+                <div className="ring r2" />
+                <div className="ring r3" />
+              </div>
+
+              {/* Scanning sweep line */}
+              <div className="scan-sweep" />
+
+              {/* Floating particles */}
+              {PARTICLES.map((p) => (
+                <div
+                  key={p.id}
+                  className="particle"
+                  style={{
+                    width: p.size,
+                    height: p.size,
+                    left: `${p.left}%`,
+                    bottom: `${p.bottom}%`,
+                    background: p.green ? "#00ffaa" : "#00d4ff",
+                    boxShadow: `0 0 ${p.size * 2}px ${p.green ? "rgba(0,255,170,.8)" : "rgba(0,212,255,.8)"}`,
+                    animationDelay: `${p.delay}s`,
+                    animationDuration: `${p.dur}s`,
+                  }}
+                />
+              ))}
+
+              {/* Tech frame corners */}
+              <div className="frame-corner fc-tl" />
+              <div className="frame-corner fc-tr" />
+              <div className="frame-corner fc-bl" />
+              <div className="frame-corner fc-br" />
+
+              {/* Status data tags */}
+              <div className="data-tag" style={{ top: 18, left: 42 }}>
+                SYS:ONLINE
+              </div>
+              <div className="data-tag" style={{ top: 18, right: 42 }}>
+                AR:PRÊT
+              </div>
+
+              {/* model-viewer mount point */}
+              <div ref={mvWrapRef} className="mv-wrap" />
+            </div>
+
+            {/* ── Info panel ── */}
+            <div className="panel-wrap">
+              <div className="info-card">
+                <div className="ic-corner ic-tl" />
+                <div className="ic-corner ic-tr" />
+                <div className="ic-corner ic-bl" />
+                <div className="ic-corner ic-br" />
+
+                <div className="card-name">REY SYLVAIN</div>
+                <div className="card-divider" />
+
+                <div className="card-row">
+                  <span className="card-lbl">MAIL</span>
+                  <span className="card-val">
+                    <a href="mailto:sylvain.rey.75@gmail.com">
+                      sylvain.rey.75@gmail.com
+                    </a>
+                  </span>
+                </div>
+                <div className="card-row">
+                  <span className="card-lbl">TÉL</span>
+                  <span className="card-val">
+                    <a href="tel:+33626375142">06 26 37 51 42</a>
+                  </span>
+                </div>
+              </div>
+
+              <button className="ar-button" onClick={handleAR}>
+                <span className="ar-dot" />
+                VOIR EN RÉALITÉ AUGMENTÉE
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>
