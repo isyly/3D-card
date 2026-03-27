@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# OS files
+.DS_Store
+
+# Blender backup files
+*.blend1
+
+# Environment
+.env
+.env.local
