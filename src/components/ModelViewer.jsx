@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 
-const MODEL_SRC = `${import.meta.env.BASE_URL}asset/BONHOMME%20BLEU2.glb`;
+const MODEL_SRC = `${import.meta.env.BASE_URL}asset/TheRock.glb`;
 
 export default function ModelViewer({ onModelRef }) {
   const wrapRef = useRef(null);
@@ -11,7 +11,7 @@ export default function ModelViewer({ onModelRef }) {
 
     const mv = document.createElement("model-viewer");
     mv.setAttribute("src", MODEL_SRC);
-    mv.setAttribute("alt", "bonhomme bleu 3D");
+    mv.setAttribute("alt", "The Rock 3D");
     mv.setAttribute("ar", "");
     mv.setAttribute("ar-modes", "webxr scene-viewer quick-look");
     mv.setAttribute("camera-controls", "");
