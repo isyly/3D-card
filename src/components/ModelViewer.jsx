@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 
-const MODEL_SRC = "/3D-card/asset/BONHOMME BLEU2.glb";
+const MODEL_SRC = `${import.meta.env.BASE_URL}asset/BONHOMME BLEU2.glb`;
 
 export default function ModelViewer({ onModelRef }) {
   const wrapRef = useRef(null);
