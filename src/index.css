@@ -81,6 +81,10 @@ body {
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  background-image: url("/crane.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* ── Center glow ──────────────────── */
